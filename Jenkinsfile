@@ -14,8 +14,8 @@ pipeline{
             steps{
                 script{
                     docker.withRegistry("https://${GTRI_IMAGE_REGISTRY}"){
-                        def fhir-clientImage = docker.build("clarity-fhir-client:1.0", "-f ./Dockerfile .")
-                        fhir-clientImage.push('latest')
+                        def fhirclientImage = docker.build("clarity-fhir-client:1.0", "-f ./Dockerfile .")
+                        fhirclientImage.push('latest')
                     }
                 }
             }
