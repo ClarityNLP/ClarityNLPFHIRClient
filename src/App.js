@@ -14,6 +14,7 @@ class App extends Component {
 
         this.default_fhir_url = 'https://apps.hdap.gatech.edu/gt-fhir/fhir';
         this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
+        // this.default_claritynlpaas_url = 'http://localhost:5000/job/';
         this.default_patient = '14628';
         this.smart = {};
 
@@ -89,6 +90,16 @@ class App extends Component {
                         results: response.data,
                         running: false
                     })
+                }).catch(err => {
+                    this.setState({
+                        error: err
+                    }, () => {
+                        setTimeout(() => {
+                            this.setState({
+                                error: '',
+                            })
+                        }, 2500)
+                    });
                 });
             })
         } else {
