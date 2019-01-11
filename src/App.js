@@ -24,7 +24,9 @@ class App extends Component {
             task: '',
             patient: '',
             error: '',
-            documents: []
+            documents: [],
+            results: [],
+            running: false
         };
         this.onToggle = this.onToggle.bind(this);
         this.modeToggle = this.modeToggle.bind(this);
@@ -34,6 +36,8 @@ class App extends Component {
         this.setTask = this.setTask.bind(this);
         this.canRun = this.canRun.bind(this);
         this.getRunErrorMessage = this.getRunErrorMessage.bind(this);
+        this.runPhenotype = this.runPhenotype.bind(this);
+        this.patientInputChanged = this.patientInputChanged.bind(this);
     }
 
     canRun() {
@@ -52,26 +56,79 @@ class App extends Component {
         }
         return "";
     }
+
+    runPhenotype() {
+        if (this.canRun()) {
+            this.setState({
+                running: true
+            }, () => {
+
+                let docs = this.state.documents.map((d) => {
+                    if (d.content && d.content.length > 0) {
+                        let txt = '';
+                        for (let i in d.content) {
+                            if (d.content.hasOwnProperty(i)) {
+                                if (d.content[i].hasOwnProperty('attachment')) {
+                                    let att = d.content[i]['attachment'];
+
+                                    txt = (txt + Base64.decode(att['data']) + '\n');
+                                }
+                            }
+                        }
+
+                        return txt;
+                    }
+                    return ''
+                });
+                // console.log(docs);
+                axios.post(this.default_claritynlpaas_url + this.state.task, {
+                    reports: docs
+                }).then(response => {
+                    console.log(response.data);
+                    this.setState({
+                        results: response.data,
+                        running: false
+                    })
+                });
+            })
+        } else {
+            this.setState({
+                error: this.getRunErrorMessage()
+            }, () => {
+                setTimeout(() => {
+                    this.setState({
+                        error: ''
+                    })
+                }, 2500)
+            });
+        }
+    }
+
+
     setTask(e) {
         let txt = e.target.firstChild.textContent;
         this.setState({
             task: txt
         });
     }
-
-    keyUpHandler(e){
-        if (e.key === 'Enter') {
-            let val = document.getElementById('patient').value;
-            this.setState({
-                patient: val
-            });
+    
+    patientInputChanged() {
+        let val = document.getElementById('patient').value;
+        this.setState({
+            patient: val
+        }, () => {
             this.smart = window.FHIR.client({
                 serviceUrl: this.default_fhir_url,
                 patientId: val
             });
             this.patientUpdated();
-        }
+        });
+    }
 
+    keyUpHandler(e){
+        if (e.key === 'Enter') {
+            this.patientInputChanged();
+        }
     };
 
 
@@ -79,7 +136,6 @@ class App extends Component {
         this.patient =  this.smart.patient;
         let pt = this.patient.read();
         pt.done(p => {
-            console.log(p);
             this.setState({
                 patient: p['id']
             });
@@ -92,7 +148,6 @@ class App extends Component {
             this.setState({
                 documents: d
             });
-            console.log(d);
         });
 
     }
@@ -194,7 +249,7 @@ class App extends Component {
                         <FormGroup>
                             <Label for="patient">Patient:</Label>
                             <Input type="text" name="patient" id="patient"  className={"form-control"}
-                                   onKeyUp={this.keyUpHandler}/>
+                                   onKeyUp={this.keyUpHandler} onChange={this.patientInputChanged}/>
                         </FormGroup>
                     </div>
                 </div> :
@@ -227,9 +282,10 @@ class App extends Component {
 
                         <div>
 
-                            <Button block
+                            <Button block onClick={this.runPhenotype}
+                                    disabled={this.state.running}
                                 className={ this.canRun() ? 'btn-success btn-lg' : 'btn-default btn-lg'}>
-                                { this.canRun() ? "Run (" +  this.state.documents.length + ")" : "Run"}
+                                { "Run (" +  this.state.documents.length + " Documents)" }
                                 </Button>
                             <br/>
                             <Label style={{fontSize:"10pt"}}>{this.state.error}</Label>
