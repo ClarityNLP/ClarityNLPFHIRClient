@@ -149,6 +149,7 @@ class App extends Component {
     }
 
   render() {
+    modeToggle()
     let items = this.state.tasks.map((t) => {
         return (<DropdownItem key={t} onClick={this.setTask}>
             {t}
