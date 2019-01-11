@@ -122,7 +122,7 @@ class App extends Component {
             task: txt
         });
     }
-    
+
     patientInputChanged() {
         let val = document.getElementById('patient').value;
         this.setState({
@@ -207,7 +207,7 @@ class App extends Component {
 
     componentDidMount() {
         this.modeToggle();
-        axios.get(this.default_claritynlpaas_url + 'list').then(response => {
+        axios.get(this.default_claritynlpaas_url + 'list\all').then(response => {
             this.setState({
                 tasks: response.data
             })
