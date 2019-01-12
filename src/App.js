@@ -150,7 +150,6 @@ class App extends Component {
 
     patientUpdated() {
         this.patient =  this.smart.patient;
-        document.getElementById('patient').value = this.patient.id
         console.log(this.patient)
         let pt = this.patient.read();
         console.log(pt);
