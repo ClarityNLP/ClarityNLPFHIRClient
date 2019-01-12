@@ -150,13 +150,15 @@ class App extends Component {
 
     patientUpdated() {
         this.patient =  this.smart.patient;
+        console.log(this.patient)
         let pt = this.patient.read();
-        pt.done(p => {
-            this.setState({
-                patient: p['id']
-            });
-            document.getElementById('patient').value = p['id']
-        });
+        console.log(pt);
+        // pt.done(p => {
+        //     this.setState({
+        //         patient: p['id']
+        //     });
+        //     document.getElementById('patient').value = p['id']
+        // });
         let docs = this.smart.patient.api.fetchAll({
             type: 'DocumentReference'
         });
