@@ -207,7 +207,7 @@ class App extends Component {
 
     componentDidMount() {
         this.modeToggle();
-        axios.get(this.default_claritynlpaas_url + 'list\all').then(response => {
+        axios.get(this.default_claritynlpaas_url + 'list/all').then(response => {
             this.setState({
                 tasks: response.data
             })
