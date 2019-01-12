@@ -15,8 +15,13 @@ class App extends Component {
         this.default_fhir_url = 'https://apps.hdap.gatech.edu/gt-fhir/fhir';
         this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
         // this.default_claritynlpaas_url = 'http://localhost:5000/job/';
-        this.default_patient = '14628';
+        this.default_patient = '14629';
         this.smart = {};
+        console.log('hello');
+        window.FHIR.oauth2.authorize({
+        "client_id": "my_web_app",
+        "scope"    : "patient/*.read"
+        });
 
         this.state = {
             tasks: [],
