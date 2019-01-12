@@ -152,7 +152,7 @@ class App extends Component {
         this.patient =  this.smart.patient;
         console.log(this.patient)
         let pt = this.patient.read();
-        console.log(pt);
+        console.log(document.getElementById('patient'));
         // pt.done(p => {
         //     this.setState({
         //         patient: p['id']
