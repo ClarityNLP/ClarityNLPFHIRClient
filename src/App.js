@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
-import { Navbar, NavbarBrand, FormGroup, Input, Label, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button}
+import React, {Component} from 'react';
+import {Navbar, NavbarBrand, FormGroup, Input, Label, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button}
     from 'reactstrap';
 import logo from './gtri.png';
 import './App.css';
 import ToggleButton from 'react-toggle-button';
-import { Base64 } from 'js-base64';
+import {Base64} from 'js-base64';
 import axios from 'axios';
 
 class App extends Component {
@@ -13,7 +13,8 @@ class App extends Component {
         super(props);
 
         this.default_fhir_url = 'https://apps.hdap.gatech.edu/gt-fhir/fhir';
-        this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
+        // this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
+        this.default_claritynlpaas_url = 'http://localhost:5000/job/';
         this.default_patient = '14628';
         this.smart = {};
 
@@ -29,11 +30,15 @@ class App extends Component {
             test_mode: false,
             task_dropdown_open: false,
             task: '',
+            pretty_task: '',
             patient: '',
+            patient_name: '',
             error: '',
+            category: '',
             documents: [],
             results: [],
-            running: false
+            running: false,
+            items_map: new Map()
         };
         this.onToggle = this.onToggle.bind(this);
         this.modeToggle = this.modeToggle.bind(this);
@@ -46,9 +51,22 @@ class App extends Component {
         this.runPhenotype = this.runPhenotype.bind(this);
         this.patientInputChanged = this.patientInputChanged.bind(this);
         this.showErrorMessage = this.showErrorMessage.bind(this);
+        this.prettify = this.prettify.bind(this);
     }
 
-    showErrorMessage(err){
+    prettify(text, capitalize) {
+        let spaced = text.split('_').join(' ');
+        if (capitalize) {
+            return spaced.toLowerCase()
+                .split(' ')
+                .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+                .join(' ');
+        } else {
+            return spaced;
+        }
+    }
+
+    showErrorMessage(err) {
         console.log(err);
         this.setState({
             error: err
@@ -72,7 +90,7 @@ class App extends Component {
         if (this.state.patient === '') {
             return "Error: No Patient Selected"
         }
-        if (this.state.documents.length === 0){
+        if (this.state.documents.length === 0) {
             return "Error: No Documents"
         }
         return "";
@@ -102,7 +120,13 @@ class App extends Component {
                     return ''
                 });
                 // console.log(docs);
-                axios.post(this.default_claritynlpaas_url + this.state.task, {
+                let normalized_task = this.state.category;
+                if (normalized_task.length > 0) {
+                    normalized_task += '/';
+                }
+                normalized_task += this.state.task;
+                normalized_task = normalized_task.split('/').join('~');
+                axios.post(this.default_claritynlpaas_url + normalized_task, {
                     reports: docs
                 }).then(response => {
                     console.log(response.data);
@@ -125,9 +149,13 @@ class App extends Component {
 
 
     setTask(e) {
-        let txt = e.target.firstChild.textContent;
+        let category = e.target.getAttribute('category');
+        let task = e.target.getAttribute('task');
+        let pretty_task = e.target.getAttribute('pretty_task');
         this.setState({
-            task: txt
+            category: category,
+            task: task,
+            pretty_task: pretty_task
         });
     }
 
@@ -144,7 +172,7 @@ class App extends Component {
         });
     }
 
-    keyUpHandler(e){
+    keyUpHandler(e) {
         if (e.key === 'Enter') {
             this.patientInputChanged();
         }
@@ -152,13 +180,31 @@ class App extends Component {
 
 
     patientUpdated() {
-        let patient =  this.smart.patient;
+        let patient = this.smart.patient;
         let pt = patient.read();
 
         pt.done(p => {
-            console.log(p);
+            let first_name = '';
+            let last_name = '';
+
+            if (typeof p.name[0] !== 'undefined') {
+                let given = p.name[0].given;
+                let family = p.name[0].family;
+                if (typeof given === "string") {
+                    first_name = given
+                } else {
+                    first_name = given.join(' ')
+                }
+                if (typeof family === "string") {
+                    last_name = family
+                } else {
+                    last_name = family.join(' ');
+                }
+
+            }
             this.setState({
-                patient: p['id']
+                patient: p['id'],
+                patient_name: (this.prettify(last_name, true) + ", " + this.prettify(first_name, true))
             }, () => {
                 let docs = this.smart.patient.api.fetchAll({
                     type: 'DocumentReference'
@@ -217,122 +263,158 @@ class App extends Component {
                 patient: '',
                 task: ''
             }),
-            () => {this.modeToggle()});
+            () => {
+                this.modeToggle()
+            });
 
     }
 
     componentDidMount() {
         this.modeToggle();
         axios.get(this.default_claritynlpaas_url + 'list/all').then(response => {
+            let items_map = new Map();
+            let categories = [];
+            for (let i in response.data) {
+                if (response.data.hasOwnProperty(i)) {
+                    let spl = response.data[i].split('/');
+                    let category = spl[0];
+                    if (!categories.includes(category)) {
+                        categories.push(category);
+                        items_map.set(category, [])
+                    }
+                    let value = spl.slice(1).join('/');
+                    items_map.get(category).push(value);
+                }
+            }
+            // console.log(items_map);
             this.setState({
-                tasks: response.data
+                tasks: response.data,
+                items_map: items_map
             })
         });
     }
 
-  render() {
-    let items = this.state.tasks.map((t) => {
-        return (<DropdownItem key={t} onClick={this.setTask}>
-            {t}
-        </DropdownItem>);
-    });
-    return (
-      <div className="App">
-          <Navbar expand="md" className="App-header light bg-info" style={{ height: "60px" }}>
-              <NavbarBrand className="mr-auto"><img src={logo} className="App-logo" alt="logo" />
-                  <div className="App-name">ClarityNLP FHIR Client</div></NavbarBrand>
-              <div style={{color:"black"}}>
-                  <ToggleButton
+    render() {
+        let items = [];
+        for (let [k, values] of this.state.items_map) {
+            if (items.length > 0) {
+                items.push(<DropdownItem divider key={"divider" + k}/>)
+            }
+            items.push(<DropdownItem header key={"header" + k}><b>{this.prettify(k, true)}</b></DropdownItem>);
+            for (let v in values) {
+                if (values.hasOwnProperty(v)) {
+                    let value = values[v];
+                    let pretty_value = this.prettify(value);
+                    items.push(
+                        <DropdownItem key={value} onClick={this.setTask} category={k} task={value}
+                                      pretty_task={pretty_value}>
+                                      {pretty_value}</DropdownItem>
+                    )
+                }
+            }
+        }
+        return (
+            <div className="App">
+                <Navbar expand="md" className="App-header light bg-info" style={{height: "60px"}}>
+                    <NavbarBrand className="mr-auto"><img src={logo} className="App-logo" alt="logo"/>
+                        <div className="App-name">ClarityNLP FHIR Client</div>
+                    </NavbarBrand>
+                    <div style={{color: "black"}}>
+                        <ToggleButton
 
-                      inactiveLabel={"Test"}
-                      activeLabel={"EMR"}
-                      colors={{
-                          activeThumb: {
-                              base: 'rgb(250, 250, 250)',
-                          },
-                          inactiveThumb: {
-                              base: 'rgb(250, 250, 250)',
-                          },
-                          active: {
-                              base: '#34919f',
-                              hover: '#34919f',
-                          },
-                          inactive: {
-                              base: 'rgb(65, 66, 68)',
-                              hover: 'rgb(65, 66, 68)',
-                          }
-                      }}
-                      value={!this.state.test_mode}
-                      onToggle={this.onToggle} />
+                            inactiveLabel={"Test"}
+                            activeLabel={"EMR"}
+                            colors={{
+                                activeThumb: {
+                                    base: 'rgb(250, 250, 250)',
+                                },
+                                inactiveThumb: {
+                                    base: 'rgb(250, 250, 250)',
+                                },
+                                active: {
+                                    base: '#34919f',
+                                    hover: '#34919f',
+                                },
+                                inactive: {
+                                    base: 'rgb(65, 66, 68)',
+                                    hover: 'rgb(65, 66, 68)',
+                                }
+                            }}
+                            value={!this.state.test_mode}
+                            onToggle={this.onToggle}/>
 
-              </div>
-          </Navbar>
-
-          <div className="App-intro container-fluid">
-              <div className="row" style={{paddingTop:10}}>{" "}</div>
-              {this.state.test_mode ?
-                <div>
-                    <div className="form">
-                        <FormGroup>
-                            <Label for="patient">Patient:</Label>
-                            <Input type="text" name="patient" id="patient"  className={"form-control"}
-                                   onKeyUp={this.keyUpHandler} onChange={this.patientInputChanged}/>
-                        </FormGroup>
                     </div>
-                </div> :
-                  <div>
-                    {this.state.patient !== '' ?
-                        <div><
-                            Label>{"Patient: " + this.state.patient}</Label>
+                </Navbar>
 
-                        </div>: <div/>}
-                  </div>
-              }
-              <div className="row">
-                  <div className="col-3">
-                    <div className="form">
-                        <FormGroup>
-                            <Label>Select Phenotype:</Label>
-                            <Dropdown
-                                      isOpen={this.state.task_dropdown_open} toggle={this.toggleDropdown}>
-                                <DropdownToggle outline
-
-                                                 caret>
-                                    { this.state.task === '' ?  'Phenotype  ' :  this.state.task}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    {items}
-                                </DropdownMenu>
-                            </Dropdown>
-                        </FormGroup>
-
-
+                <div className="App-intro container-fluid">
+                    <div className="row" style={{paddingTop: 10}}>{" "}</div>
+                    {this.state.test_mode ?
                         <div>
+                            <div className="form">
+                                <FormGroup>
+                                    <Label for="patient"><Label>{"Patient" +
+                                    (this.state.patient_name !== '' ?
+                                        " (" + this.state.patient_name + "):" : ': ')
+                                    }</Label></Label>
+                                    <Input type="text" name="patient" id="patient" className={"form-control"}
+                                           onKeyUp={this.keyUpHandler} onChange={this.patientInputChanged}/>
+                                </FormGroup>
+                            </div>
+                        </div> :
+                        <div>
+                            {this.state.patient !== '' ?
+                                <div><Label>{"Patient: " + this.state.patient +
+                                        (this.state.patient_name !== '' ?
+                                        " (" + this.state.patient_name + ")" : '')
+                                }</Label>
 
-                            <Button block onClick={this.runPhenotype}
-                                    disabled={this.state.running}
-                                className={ this.canRun() ? 'btn-success btn-lg' : 'btn-default btn-lg'}>
-                                { this.state.running ? "Running..." :
-                                    "Run " + (this.state.documents.length > 0 ?
-                                    " (" + this.state.documents.length + ")" : "") }
-                                </Button>
-                            <br/>
-                            <Label style={{fontSize:"10pt"}}>{this.state.error}</Label>
+                                </div> : <div/>}
+                        </div>
+                    }
+                    <div className="row">
+                        <div className="col-3">
+                            <div className="form">
+                                <FormGroup>
+                                    <Label>Select Phenotype:</Label>
+                                    <Dropdown
+                                        isOpen={this.state.task_dropdown_open} toggle={this.toggleDropdown}>
+                                        <DropdownToggle outline
+
+                                                        caret>
+                                            {this.state.pretty_task === '' ? 'Phenotype  ' : this.state.pretty_task}
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            {items}
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                </FormGroup>
+
+
+                                <div>
+
+                                    <Button block onClick={this.runPhenotype}
+                                            disabled={this.state.running}
+                                            className={this.canRun() ? 'btn-success btn-lg' : 'btn-default btn-lg'}>
+                                        {this.state.running ? "Running..." :
+                                            "Run " + (this.state.documents.length > 0 ?
+                                            " (" + this.state.documents.length + ")" : "")}
+                                    </Button>
+                                    <br/>
+                                    <Label style={{fontSize: "10pt"}}>{this.state.error}</Label>
+                                </div>
+
+
+                            </div>
                         </div>
 
+                        <div className="col-9">
 
-
+                        </div>
                     </div>
-                  </div>
-
-                  <div className="col-9">
-
-                  </div>
-              </div>
-          </div>
-      </div>
-    );
-  }
+                </div>
+            </div>
+        );
+    }
 }
 
 export default App;
