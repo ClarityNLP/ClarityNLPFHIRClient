@@ -169,7 +169,9 @@ class App extends Component {
                     });
                 });
             });
-            document.getElementById('patient').value = p['id']
+            if (this.state.test_mode) {
+                document.getElementById('patient').value = p['id'];
+            }
         });
 
 
