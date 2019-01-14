@@ -14,14 +14,15 @@ class App extends Component {
 
         this.default_fhir_url = 'https://apps.hdap.gatech.edu/gt-fhir/fhir';
         this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
-        // this.default_claritynlpaas_url = 'http://localhost:5000/job/';
-        this.default_patient = '14629';
+        this.default_patient = '14628';
         this.smart = {};
-        console.log('hello');
-        window.FHIR.oauth2.authorize({
-        "client_id": "my_web_app",
-        "scope"    : "patient/*.read"
-        });
+
+        if (window.FHIR) {
+            window.FHIR.oauth2.authorize({
+                "client_id": "my_web_app",
+                "scope": "patient/*.read"
+            });
+        }
 
         this.state = {
             tasks: [],
@@ -44,6 +45,20 @@ class App extends Component {
         this.getRunErrorMessage = this.getRunErrorMessage.bind(this);
         this.runPhenotype = this.runPhenotype.bind(this);
         this.patientInputChanged = this.patientInputChanged.bind(this);
+        this.showErrorMessage = this.showErrorMessage.bind(this);
+    }
+
+    showErrorMessage(err){
+        console.log(err);
+        this.setState({
+            error: err
+        }, () => {
+            setTimeout(() => {
+                this.setState({
+                    error: '',
+                })
+            }, 2500)
+        });
     }
 
     canRun() {
@@ -54,7 +69,7 @@ class App extends Component {
         if (this.state.task === '') {
             return "Error: No Phenotype Selected"
         }
-        if (this.state.patient !== '') {
+        if (this.state.patient === '') {
             return "Error: No Patient Selected"
         }
         if (this.state.documents.length === 0){
@@ -96,27 +111,15 @@ class App extends Component {
                         running: false
                     })
                 }).catch(err => {
+                    this.showErrorMessage(err.toString());
                     this.setState({
-                        error: err
-                    }, () => {
-                        setTimeout(() => {
-                            this.setState({
-                                error: '',
-                            })
-                        }, 2500)
-                    });
+                        results: [],
+                        running: false
+                    })
                 });
             })
         } else {
-            this.setState({
-                error: this.getRunErrorMessage()
-            }, () => {
-                setTimeout(() => {
-                    this.setState({
-                        error: ''
-                    })
-                }, 2500)
-            });
+            this.showErrorMessage(this.getRunErrorMessage())
         }
     }
 
@@ -149,23 +152,26 @@ class App extends Component {
 
 
     patientUpdated() {
-        this.patient =  this.smart.patient;
-        console.log(this.patient)
-        let pt = this.patient.read();
+        let patient =  this.smart.patient;
+        let pt = patient.read();
+
         pt.done(p => {
+            console.log(p);
             this.setState({
-                patient: this.patient.id
+                patient: p['id']
+            }, () => {
+                let docs = this.smart.patient.api.fetchAll({
+                    type: 'DocumentReference'
+                });
+                docs.done(d => {
+                    this.setState({
+                        documents: d
+                    });
+                });
             });
-            // document.getElementById('patient').value = p['id']
+            document.getElementById('patient').value = p['id']
         });
-        let docs = this.smart.patient.api.fetchAll({
-            type: 'DocumentReference'
-        });
-        docs.done(d => {
-            this.setState({
-                documents: d
-            });
-        });
+
 
     }
 
@@ -183,14 +189,16 @@ class App extends Component {
             this.patientUpdated();
 
         } else {
-            window.FHIR.oauth2.ready(smart => {
-                console.log('fhir oauth2 ready');
-                // now do something cool
-                this.smart = smart;
+            if (window.FHIR) {
+                window.FHIR.oauth2.ready(smart => {
+                    console.log('fhir oauth2 ready');
+                    // now do something cool
+                    this.smart = smart;
 
-                this.patientUpdated();
+                    this.patientUpdated();
 
-            });
+                });
+            }
         }
     }
 
@@ -228,7 +236,7 @@ class App extends Component {
     });
     return (
       <div className="App">
-          <Navbar expand="md" className="App-header light bg-info" >
+          <Navbar expand="md" className="App-header light bg-info" style={{ height: "60px" }}>
               <NavbarBrand className="mr-auto"><img src={logo} className="App-logo" alt="logo" />
                   <div className="App-name">ClarityNLP FHIR Client</div></NavbarBrand>
               <div style={{color:"black"}}>
@@ -302,7 +310,9 @@ class App extends Component {
                             <Button block onClick={this.runPhenotype}
                                     disabled={this.state.running}
                                 className={ this.canRun() ? 'btn-success btn-lg' : 'btn-default btn-lg'}>
-                                { "Run (" +  this.state.documents.length + " Documents)" }
+                                { this.state.running ? "Running..." :
+                                    "Run " + (this.state.documents.length > 0 ?
+                                    " (" + this.state.documents.length + ")" : "") }
                                 </Button>
                             <br/>
                             <Label style={{fontSize:"10pt"}}>{this.state.error}</Label>
