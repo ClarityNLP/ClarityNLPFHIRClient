@@ -261,7 +261,10 @@ class App extends Component {
         this.setState(prevState => ({
                 test_mode: !this.state.test_mode,
                 patient: '',
-                task: ''
+                patient_name: '',
+                task: '',
+                pretty_task: '',
+                category: ''
             }),
             () => {
                 this.modeToggle()
