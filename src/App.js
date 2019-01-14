@@ -13,8 +13,8 @@ class App extends Component {
         super(props);
 
         this.default_fhir_url = 'https://apps.hdap.gatech.edu/gt-fhir/fhir';
-        // this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
-        this.default_claritynlpaas_url = 'http://localhost:5000/job/';
+        this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
+        // this.default_claritynlpaas_url = 'http://localhost:5000/job/';
         this.default_patient = '14628';
         this.smart = {};
 
