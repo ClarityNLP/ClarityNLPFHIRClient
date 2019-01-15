@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
-import {Navbar, NavbarBrand, FormGroup, Input, Label, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button,
-    Table, Modal, ModalHeader, ModalBody, ModalFooter}
+import {
+    Navbar, NavbarBrand, FormGroup, Input, Label, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button,
+    Table, Modal, ModalHeader, ModalBody, ModalFooter
+}
     from 'reactstrap';
 import logo from './gtri.png';
 import './App.css';
@@ -17,8 +19,8 @@ class App extends Component {
         this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
         // this.default_claritynlpaas_url = 'http://localhost:5000/job/';
         this.default_patient = '14628';
-        this.standard_column_names = [ 'Feature', 'Section', 'Sentence', 'Value', ''];
-        this.standard_columns = [ 'nlpql_feature', 'section', 'sentence', 'value', '$'];
+        this.standard_column_names = ['Feature', 'Section', 'Sentence', 'Value', ''];
+        this.standard_columns = ['nlpql_feature', 'section', 'sentence', 'value', '$'];
 
         this.smart = {};
 
@@ -164,7 +166,6 @@ class App extends Component {
                             if (d.content.hasOwnProperty(i)) {
                                 if (d.content[i].hasOwnProperty('attachment')) {
                                     let att = d.content[i]['attachment'];
-
                                     txt = (txt + Base64.decode(att['data']) + '\n');
                                 }
                             }
@@ -273,8 +274,8 @@ class App extends Component {
             let last_name = '';
 
             if (typeof p.name[0] !== 'undefined') {
-                let given = p.name[0].given;
-                let family = p.name[0].family;
+                let given = p.name[0]['given'];
+                let family = p.name[0]['family'];
                 if (typeof given === "string") {
                     first_name = given
                 } else {
@@ -344,7 +345,7 @@ class App extends Component {
     onToggle() {
         console.log('ontoggle, test_mode = ' + !this.state.test_mode);
         this.setState(prevState => ({
-                test_mode: !this.state.test_mode,
+                test_mode: !prevState.test_mode,
                 patient: '',
                 patient_name: '',
                 task: '',
@@ -399,7 +400,7 @@ class App extends Component {
                     items.push(
                         <DropdownItem key={'value' + value} onClick={this.setTask} category={k} task={value}
                                       pretty_task={pretty_value}>
-                                      {pretty_value}</DropdownItem>
+                            {pretty_value}</DropdownItem>
                     )
                 }
             }
@@ -429,7 +430,7 @@ class App extends Component {
             }
 
             if (typeof key === "object") {
-                key = JSON.stringify(k)
+                key = JSON.stringify(key)
             }
             return (
                 <tr key={'modal' + key}>
@@ -443,32 +444,32 @@ class App extends Component {
         let result_items = this.state.results.map((r, it) => {
             let id = it;
             let row_values = column_keys.map((c, rit) => {
-               if (r.hasOwnProperty(c)) {
-                   let row_value = r[c];
-                   let className = '';
-                   if (c === "section") {
-                       row_value = row_value.split("_").join(" ")
-                   }
-                   if (c === "nlpql_feature") {
-                       className = "bold_label"
-                   }
-                   if (c === "section") {
-                       className = "section_column"
-                   }
-                   if (c === "value") {
-                       className = "value_column"
-                   }
-                   return <td key={id + '.' + rit} className={className}>{row_value}</td>
-               } else {
-                   if (c === "$") {
-                       return <td key={id + '.' + rit} style={{cursor: "pointer"}} onClick={() => {
+                if (r.hasOwnProperty(c)) {
+                    let row_value = r[c];
+                    let className = '';
+                    if (c === "section") {
+                        row_value = row_value.split("_").join(" ")
+                    }
+                    if (c === "nlpql_feature") {
+                        className = "bold_label"
+                    }
+                    if (c === "section") {
+                        className = "section_column"
+                    }
+                    if (c === "value") {
+                        className = "value_column"
+                    }
+                    return <td key={id + '.' + rit} className={className}>{row_value}</td>
+                } else {
+                    if (c === "$") {
+                        return <td key={id + '.' + rit} style={{cursor: "pointer"}} onClick={() => {
                             this.showModalDetail(r)
-                            }}>
-                           <i className="fas fa-bars"/>{ "  " }</td>;
-                   } else {
-                       return <td key={id + '.' + rit}>&nbsp;</td>
-                   }
-               }
+                        }}>
+                            <i className="fas fa-bars"/>{"  "}</td>;
+                    } else {
+                        return <td key={id + '.' + rit}>&nbsp;</td>
+                    }
+                }
             });
             return <tr key={'row' + id}>
                 {row_values}
@@ -477,8 +478,8 @@ class App extends Component {
 
         return (
             <div className="App">
-                <Navbar expand="md" className="App-header light bg-info" style={{height: "60px"}}>
-                    <NavbarBrand className="mr-auto"><img src={logo} className="App-logo" alt="logo"/>
+                <Navbar expand="md" className="App-header light bg-info" style={{height: "50px"}}>
+                    <NavbarBrand className="mr-auto"><img src={logo} className="App-logo hidden-sm-down" alt="logo"/>
                         <div className="App-name">ClarityNLP FHIR Client</div>
                     </NavbarBrand>
                     <div style={{color: "black"}}>
@@ -526,19 +527,19 @@ class App extends Component {
                         <div>
                             {this.state.patient !== '' ?
                                 <div><Label>{"Patient: " + this.state.patient +
-                                        (this.state.patient_name !== '' ?
-                                        " (" + this.state.patient_name + ")" : '')
+                                (this.state.patient_name !== '' ?
+                                    " (" + this.state.patient_name + ")" : '')
                                 }</Label>
 
                                 </div> : <div/>}
                         </div>
                     }
                     <div className="row">
-                        <div className="col-3">
+                        <div className="col-sm-12 col-md-4 col-lg-3">
                             <div className="form">
                                 <FormGroup>
                                     <Label>Select Phenotype:</Label>
-                                    <Dropdown
+                                    <Dropdown className={"task_dropdown"}
                                         isOpen={this.state.task_dropdown_open} toggle={this.toggleDropdown}>
                                         <DropdownToggle outline
 
@@ -556,7 +557,7 @@ class App extends Component {
                                     <Button block onClick={this.runPhenotype}
                                             disabled={this.state.running}
                                             className={this.canRun() ? 'btn-success btn-lg' : 'btn-default btn-lg'}>
-                                        {this.state.running ? <span><i className="fa fa-circle-notch fa-spin"/></span>:
+                                        {this.state.running ? <span><i className="fa fa-circle-notch fa-spin"/></span> :
                                             "Run " + (this.state.documents.length > 0 ?
                                             " (" + this.state.documents.length + ")" : "")}
                                     </Button>
@@ -568,8 +569,8 @@ class App extends Component {
                             </div>
                         </div>
 
-                        <div className="col-9">
-                            { this.state.result_message !== '' ?
+                        <div className="col-sm-12 col-md-8 col-lg-9">
+                            {this.state.result_message !== '' ?
                                 <div>
                                     <Label>{this.state.result_message}</Label>
                                 </div> :
@@ -584,7 +585,7 @@ class App extends Component {
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {result_items}
+                                                {result_items}
                                                 </tbody>
                                             </Table>
                                         </div>
