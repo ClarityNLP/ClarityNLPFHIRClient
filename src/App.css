@@ -243,3 +243,17 @@ pre, .ReportTextPreview {
 .toggle-of {
 
 }
+
+
+.dropdown-item {
+  font-weight: 300;
+  padding: .2rem 1.0rem;
+}
+
+.dropdown-item:hover {
+  font-weight: 400;
+}
+
+.dropdown-header {
+  padding: .1rem 1.0rem .15rem 1.0rem;
+}
