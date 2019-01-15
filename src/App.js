@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import {Navbar, NavbarBrand, FormGroup, Input, Label, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button}
+import {Navbar, NavbarBrand, FormGroup, Input, Label, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button,
+    Table, Modal, ModalHeader, ModalBody, ModalFooter}
     from 'reactstrap';
 import logo from './gtri.png';
 import './App.css';
@@ -16,6 +17,9 @@ class App extends Component {
         this.default_claritynlpaas_url = 'https://nlp.hdap.gatech.edu/job/';
         // this.default_claritynlpaas_url = 'http://localhost:5000/job/';
         this.default_patient = '14628';
+        this.standard_column_names = [ 'Feature', 'Section', 'Sentence', 'Value', ''];
+        this.standard_columns = [ 'nlpql_feature', 'section', 'sentence', 'value', '$'];
+
         this.smart = {};
 
         if (window.FHIR) {
@@ -38,7 +42,10 @@ class App extends Component {
             documents: [],
             results: [],
             running: false,
-            items_map: new Map()
+            items_map: new Map(),
+            result_message: '',
+            result_modal: false,
+            active_row: {}
         };
         this.onToggle = this.onToggle.bind(this);
         this.modeToggle = this.modeToggle.bind(this);
@@ -51,7 +58,39 @@ class App extends Component {
         this.runPhenotype = this.runPhenotype.bind(this);
         this.patientInputChanged = this.patientInputChanged.bind(this);
         this.showErrorMessage = this.showErrorMessage.bind(this);
+        this.showResultMessage = this.showResultMessage.bind(this);
         this.prettify = this.prettify.bind(this);
+        this.compareColumn = this.compareColumn.bind(this);
+        this.toggleModal = this.toggleModal.bind(this);
+        this.showModalDetail = this.showModalDetail.bind(this);
+    }
+
+    showModalDetail(row) {
+        this.setState({
+            active_row: row,
+            result_modal: true
+        });
+    }
+
+    toggleModal() {
+        this.setState({
+            result_modal: !this.state.result_modal
+        })
+    }
+
+    compareColumn(a, b, key) {
+        if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
+            let a_val = a[key].toString().toLowerCase();
+            let b_val = b[key].toString().toLowerCase();
+            if (a_val < b_val) {
+                return -1;
+            }
+            if (a_val > b_val) {
+                return 1;
+            }
+        }
+
+        return 0
     }
 
     prettify(text, capitalize) {
@@ -79,6 +118,19 @@ class App extends Component {
         });
     }
 
+    showResultMessage(err) {
+        console.log(err);
+        this.setState({
+            result_message: err
+        }, () => {
+            setTimeout(() => {
+                this.setState({
+                    result_message: '',
+                })
+            }, 2500)
+        });
+    }
+
     canRun() {
         return this.state.task !== '' && this.state.patient !== '' && this.state.documents.length > 0;
     }
@@ -99,7 +151,10 @@ class App extends Component {
     runPhenotype() {
         if (this.canRun()) {
             this.setState({
-                running: true
+                running: true,
+                result_message: '',
+                results: [],
+                active_row: {}
             }, () => {
 
                 let docs = this.state.documents.map((d) => {
@@ -128,17 +183,47 @@ class App extends Component {
                 normalized_task = normalized_task.split('/').join('~');
                 axios.post(this.default_claritynlpaas_url + normalized_task, {
                     reports: docs
+                }, {
+                    timeout: 1000000
                 }).then(response => {
                     console.log(response.data);
-                    this.setState({
-                        results: response.data,
-                        running: false
-                    })
+                    let results = response.data;
+                    let matches = results.filter(r => {
+                        return r.hasOwnProperty('nlpql_feature') && r['nlpql_feature'] !== null && r['nlpql_feature']
+                            !== "null";
+                    }).sort((a, b) => {
+                        let sort_val = 0;
+
+                        for (let c in this.standard_columns) {
+                            if (sort_val !== 0) {
+                                break;
+                            }
+                            sort_val = this.compareColumn(a, b, this.standard_columns[c])
+                        }
+
+
+                        return sort_val;
+                    });
+                    if (matches.length === 0) {
+                        this.setState({
+                            results: matches,
+                            running: false,
+                            result_message: 'No matches for ' + this.state.pretty_task + '.'
+                        })
+                    } else {
+                        this.setState({
+                            results: matches,
+                            running: false,
+                            result_message: ''
+                        })
+                    }
+
                 }).catch(err => {
-                    this.showErrorMessage(err.toString());
+                    this.showResultMessage(err.toString());
                     this.setState({
                         results: [],
                         running: false
+
                     })
                 });
             })
@@ -264,7 +349,10 @@ class App extends Component {
                 patient_name: '',
                 task: '',
                 pretty_task: '',
-                category: ''
+                category: '',
+                result_message: '',
+                results: [],
+                active_row: {}
             }),
             () => {
                 this.modeToggle()
@@ -309,13 +397,84 @@ class App extends Component {
                     let value = values[v];
                     let pretty_value = this.prettify(value);
                     items.push(
-                        <DropdownItem key={value} onClick={this.setTask} category={k} task={value}
+                        <DropdownItem key={'value' + value} onClick={this.setTask} category={k} task={value}
                                       pretty_task={pretty_value}>
                                       {pretty_value}</DropdownItem>
                     )
                 }
             }
         }
+
+        let result_header_items = [];
+        for (let hi in this.standard_column_names) {
+            result_header_items.push(
+                <th key={'header_item' + hi}>
+                    {this.standard_column_names[hi]}
+                </th>
+            )
+        }
+
+        let keys = Object.entries(this.state.active_row).sort();
+        let modal_detail = keys.map(k => {
+            let modal_value = k[1];
+            let key = k[0];
+            if (modal_value) {
+                if (typeof modal_value === "object") {
+                    modal_value = JSON.stringify(modal_value)
+                } else {
+                    modal_value = modal_value.toString()
+                }
+            } else {
+                modal_value = ""
+            }
+
+            if (typeof key === "object") {
+                key = JSON.stringify(k)
+            }
+            return (
+                <tr key={'modal' + key}>
+                    <td><b>{key}</b></td>
+                    <td>{modal_value}</td>
+                </tr>
+            )
+        });
+
+        let column_keys = this.standard_columns;
+        let result_items = this.state.results.map((r, it) => {
+            let id = it;
+            let row_values = column_keys.map((c, rit) => {
+               if (r.hasOwnProperty(c)) {
+                   let row_value = r[c];
+                   let className = '';
+                   if (c === "section") {
+                       row_value = row_value.split("_").join(" ")
+                   }
+                   if (c === "nlpql_feature") {
+                       className = "bold_label"
+                   }
+                   if (c === "section") {
+                       className = "section_column"
+                   }
+                   if (c === "value") {
+                       className = "value_column"
+                   }
+                   return <td key={id + '.' + rit} className={className}>{row_value}</td>
+               } else {
+                   if (c === "$") {
+                       return <td key={id + '.' + rit} style={{cursor: "pointer"}} onClick={() => {
+                            this.showModalDetail(r)
+                            }}>
+                           <i className="fas fa-bars"/>{ "  " }</td>;
+                   } else {
+                       return <td key={id + '.' + rit}>&nbsp;</td>
+                   }
+               }
+            });
+            return <tr key={'row' + id}>
+                {row_values}
+            </tr>
+        });
+
         return (
             <div className="App">
                 <Navbar expand="md" className="App-header light bg-info" style={{height: "60px"}}>
@@ -394,11 +553,10 @@ class App extends Component {
 
 
                                 <div>
-
                                     <Button block onClick={this.runPhenotype}
                                             disabled={this.state.running}
                                             className={this.canRun() ? 'btn-success btn-lg' : 'btn-default btn-lg'}>
-                                        {this.state.running ? "Running..." :
+                                        {this.state.running ? <span><i className="fa fa-circle-notch fa-spin"/></span>:
                                             "Run " + (this.state.documents.length > 0 ?
                                             " (" + this.state.documents.length + ")" : "")}
                                     </Button>
@@ -411,10 +569,51 @@ class App extends Component {
                         </div>
 
                         <div className="col-9">
-
+                            { this.state.result_message !== '' ?
+                                <div>
+                                    <Label>{this.state.result_message}</Label>
+                                </div> :
+                                <div>
+                                    {this.state.results.length === 0 ?
+                                        <span/> :
+                                        <div>
+                                            <Table hover size="sm">
+                                                <thead>
+                                                <tr>
+                                                    {result_header_items}
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {result_items}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
+                <Modal isOpen={this.state.result_modal} toggle={this.toggleModal}>
+                    <ModalHeader toggle={this.toggleModal}>View Detail</ModalHeader>
+                    <ModalBody>
+                        <Table hover>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {modal_detail}
+                            </tbody>
+                        </Table>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="primary" onClick={this.toggleModal}>Close</Button>
+                    </ModalFooter>
+                </Modal>
+
             </div>
         );
     }

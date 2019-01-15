@@ -257,3 +257,29 @@ pre, .ReportTextPreview {
 .dropdown-header {
   padding: .1rem 1.0rem .15rem 1.0rem;
 }
+
+.bold_label {
+    font-weight: bold;
+}
+
+.section_column {
+    min-width: 200px;
+}
+
+.value_column {
+    min-width: 100px;
+}
+
+.hover_bars:hover {
+    cursor: pointer;
+}
+
+.modal-dialog {
+    margin: 2rem auto;
+    width: 80%;
+    min-width: 80%;
+}
+
+.table td {
+    padding: .25rem;
+}
