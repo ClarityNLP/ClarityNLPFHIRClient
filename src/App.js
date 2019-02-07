@@ -13,7 +13,7 @@ export default class App extends Component {
         return (
             <Provider store={store}>
                 <Container>
-                    <Row className="justify-content-center align-items-center">
+                    <Row>
                         <PhenotypeSelect />
                     </Row>
                 </Container>

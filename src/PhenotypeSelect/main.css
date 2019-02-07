@@ -1,0 +1,11 @@
+.selectable {
+    cursor: pointer;
+}
+
+.selectable:hover {
+    background-color: whitesmoke;
+}
+
+.selectable.active {
+    background-color: cornflowerblue;
+}

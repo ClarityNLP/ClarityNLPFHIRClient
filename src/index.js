@@ -7,7 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import configureStore from "./redux/store";
 import App from "./App";
 
-const apiClient = axios.create();
+const apiClient = axios.create({});
 
 const store = configureStore(apiClient);
 

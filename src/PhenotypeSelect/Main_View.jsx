@@ -1,10 +1,12 @@
 import React, { Component } from "react";
+import "./main.css";
 
 import prettify from "../utils/prettify";
+import Library from "./components/Library";
 
 const initialState = {
-    smart: {},
-    patient: {}
+    smart: null,
+    patient: null
 };
 
 export default class Main_View extends Component {
@@ -96,12 +98,12 @@ export default class Main_View extends Component {
 
     render() {
         return (
-            <div>
-                <form>
-                    <input type="text" />
-                    <button>Submit</button>
-                </form>
-            </div>
+            <React.Fragment>
+                <Library
+                    loading={this.props.app.loadingLibrary}
+                    library={this.props.app.library}
+                />
+            </React.Fragment>
         );
     }
 }
