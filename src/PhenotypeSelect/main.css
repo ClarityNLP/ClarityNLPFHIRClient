@@ -1,11 +1,57 @@
-.selectable {
+.category {
+    margin-bottom: 30px;
+}
+
+.category .card-header {
+    cursor: pointer;
+    background-color: whitesmoke;
+    border-bottom: none;
+}
+
+.category .card-body {
+    padding: 0;
+}
+
+button {
     cursor: pointer;
 }
 
-.selectable:hover {
-    background-color: whitesmoke;
+.list-group-item.active {
+    z-index: 2;
+    color: #fff;
+    background-color: #79589f;
+    border-color: #79589f;
 }
 
-.selectable.active {
-    background-color: cornflowerblue;
+.list-group-flush:last-child .list-group-item:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+.selected-options-container {
+    margin-bottom: 20px;
+}
+
+.selected-options-container .badge-primary {
+    color: #fff;
+    background-color: #79589f;
+}
+
+.selected-options-container .badge-pill {
+    font-size: 18px;
+    padding: 10px;
+    margin: 0 10px 5px 0;
+    border-radius: 10rem;
+}
+
+.btn-outline-primary {
+    color: #79589f;
+    border-color: #79589f;
+}
+
+.btn-outline-primary:not(:disabled):not(.disabled).active,
+.btn-outline-primary:not(:disabled):not(.disabled):active,
+.show > .btn-outline-primary.dropdown-toggle {
+    color: #fff;
+    background-color: #79589f;
+    border-color: #79589f;
 }

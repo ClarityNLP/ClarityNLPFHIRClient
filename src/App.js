@@ -1,23 +1,42 @@
 import React, { Component } from "react";
-import { Container, Row } from "reactstrap";
-import { Provider } from "react-redux";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import "./App.css";
 
+import Loader from "./Loader";
+import Header from "./Header";
 import PhenotypeSelect from "./PhenotypeSelect";
+import Results from "./Results";
 
 export default class App extends Component {
-    render() {
-        const { store } = this.props;
+    componentDidMount() {
+        this.props.setSmart().then(smart => {
+            this.props.setPatient(smart);
+        });
+        this.props.setLibrary();
+    }
 
-        return (
-            <Provider store={store}>
-                <Container>
-                    <Row>
-                        <PhenotypeSelect />
-                    </Row>
-                </Container>
-            </Provider>
+    render() {
+        const {
+            loading_library,
+            loading_patient,
+            loading_smart
+        } = this.props.app;
+
+        const loading = loading_library || loading_patient || loading_smart;
+
+        return loading ? (
+            <Loader />
+        ) : (
+            <React.Fragment>
+                <Header />
+                <Router>
+                    <Switch>
+                        <Route path="/results" component={Results} />
+                        <Route path="/" component={PhenotypeSelect} />
+                    </Switch>
+                </Router>
+            </React.Fragment>
         );
     }
 }

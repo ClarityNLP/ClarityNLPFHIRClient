@@ -1,7 +1,7 @@
 import { connect } from "react-redux";
-import { getLibrary } from "../redux/actions/get_library";
+import { setResults } from "../redux/actions/set_results";
 
-import Main_View from "./Main_View";
+import PhenotypeSelect from "./PhenotypeSelect";
 
 function mapStateToProps(state) {
     return {
@@ -9,9 +9,9 @@ function mapStateToProps(state) {
     };
 }
 
-const PhenotypeSelect = connect(
+const PhenotypeSelectContainer = connect(
     mapStateToProps,
-    { getLibrary }
-)(Main_View);
+    { setResults }
+)(PhenotypeSelect);
 
-export default PhenotypeSelect;
+export default PhenotypeSelectContainer;

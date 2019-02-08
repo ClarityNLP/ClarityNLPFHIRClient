@@ -5,7 +5,7 @@ import {
     SET_LIBRARY_FAIL
 } from "./types";
 
-export const getLibrary = () => dispatch => {
+export const setLibrary = () => dispatch => {
     return new Promise((resolve, reject) => {
         dispatch({
             type: SETTING_LIBRARY,
