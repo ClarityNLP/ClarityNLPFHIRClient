@@ -9,23 +9,33 @@ import Entity from "./Entity";
 export default class Results extends Component {
     componentDidMount() {}
 
-    displayResult = result => {
-        return <Entity key={result} result={result} />;
+    renderResults = () => {
+        const { results, results_error } = this.props.app;
+
+        console.log(results);
+
+        if (results_error === "" && results.length > 0) {
+            return results.map(result => {
+                return <Entity result={result} />;
+            });
+        } else {
+            return (
+                <div>
+                    <p>No matches found.</p>
+                </div>
+            );
+        }
     };
 
     render() {
-        const { loading_results, results } = this.props.app;
+        const { loading_results } = this.props.app;
 
         return loading_results ? (
             <Loader />
         ) : (
             <React.Fragment>
                 <Container>
-                    <Row>
-                        {results.map(result => {
-                            return this.displayResult(result);
-                        })}
-                    </Row>
+                    <Row>{this.renderResults()}</Row>
                 </Container>
             </React.Fragment>
         );

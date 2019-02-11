@@ -7,6 +7,23 @@ import {
     SET_RESULTS_FAIL
 } from "./types";
 
+const standard_columns = ["nlpql_feature", "section", "sentence", "value", "$"];
+
+const compareColumn = (a, b, key) => {
+    if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
+        let a_val = a[key].toString().toLowerCase();
+        let b_val = b[key].toString().toLowerCase();
+        if (a_val < b_val) {
+            return -1;
+        }
+        if (a_val > b_val) {
+            return 1;
+        }
+    }
+
+    return 0;
+};
+
 export const setResults = (selections, patient) => dispatch => {
     const selection = selections[0];
 
@@ -33,7 +50,6 @@ export const setResults = (selections, patient) => dispatch => {
             return "";
         });
 
-        // console.log(docs);
         let normalized_task = selection.category;
 
         if (normalized_task.length > 0) {
@@ -44,15 +60,9 @@ export const setResults = (selections, patient) => dispatch => {
         normalized_task = normalized_task.split("/").join("~");
 
         axios
-            .post(
-                process.env.REACT_APP_CLARITY_NLPAAS_URL + normalized_task,
-                {
-                    reports: docs
-                },
-                {
-                    timeout: 1000000
-                }
-            )
+            .post(process.env.REACT_APP_CLARITY_NLPAAS_URL + normalized_task, {
+                reports: docs
+            })
             .then(response => {
                 let results = response.data;
                 let matches = results
@@ -66,15 +76,11 @@ export const setResults = (selections, patient) => dispatch => {
                     .sort((a, b) => {
                         let sort_val = 0;
 
-                        for (let c in this.standard_columns) {
+                        for (let c in standard_columns) {
                             if (sort_val !== 0) {
                                 break;
                             }
-                            sort_val = this.compareColumn(
-                                a,
-                                b,
-                                this.standard_columns[c]
-                            );
+                            sort_val = compareColumn(a, b, standard_columns[c]);
                         }
 
                         return sort_val;
@@ -99,7 +105,7 @@ export const setResults = (selections, patient) => dispatch => {
                     type: SET_RESULTS_FAIL,
                     data: err.message
                 });
-                reject();
+                reject(err);
             });
     });
 };

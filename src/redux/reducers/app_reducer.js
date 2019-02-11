@@ -3,17 +3,17 @@ import * as types from "../actions/types";
 const initialState = {
     loading_library: false,
     library: {},
-    library_error: {},
+    library_error: "",
     loading_patient: false,
     patient: {},
-    patient_error: {},
+    patient_error: "",
     loading_smart: false,
     smart: {},
-    smart_error: {},
+    smart_error: "",
     selections: [],
     loading_results: false,
     results: [],
-    results_error: {}
+    results_error: ""
 };
 
 const reducer = (state = initialState, action) => {

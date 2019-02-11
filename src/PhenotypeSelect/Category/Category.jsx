@@ -10,6 +10,8 @@ import {
 import prettify from "../../utils/prettify";
 import SelectButton from "./SelectButton";
 
+import "./main.css";
+
 const inititalState = {
     collapse: false
 };

@@ -21,7 +21,7 @@ export default class PhenotypeSelect extends Component {
         if (selections.length > 0) {
             return selections.map(value => {
                 return (
-                    <Badge key={value} color="primary" pill size="lg">
+                    <Badge key={value.task} color="primary" pill size="lg">
                         {prettify(value.task, true)}
                     </Badge>
                 );
@@ -52,29 +52,38 @@ export default class PhenotypeSelect extends Component {
         const { selections, patient } = this.props.app;
 
         if (selections.length > 0 && patient !== {} && patient.documents) {
-            this.props.setResults(selections, patient);
+            this.props.setResults(selections, patient).catch(err => {
+                console.log(err);
+            });
             this.props.history.push("/results");
         }
     };
 
     render() {
+        const { error_alert } = this.state;
+
         return (
             <Container>
+                {error_alert}
                 <Row>
                     <Col xs="8">
                         <Row>{this.renderLibrary()}</Row>
                     </Col>
                     <Col xs="4" className="selected-options-container">
-                        {this.renderOptions()}
-                        <Button
-                            outline
-                            color="primary"
-                            size="lg"
-                            block
-                            onClick={this.handleRunClick}
-                        >
-                            Run
-                        </Button>
+                        <Row className="justify-content-end">
+                            <Col md="12">{this.renderOptions()}</Col>
+                            <Col md="6" className="align-self-end">
+                                <Button
+                                    outline
+                                    color="primary"
+                                    size="lg"
+                                    block
+                                    onClick={this.handleRunClick}
+                                >
+                                    Run
+                                </Button>
+                            </Col>
+                        </Row>
                     </Col>
                 </Row>
             </Container>
