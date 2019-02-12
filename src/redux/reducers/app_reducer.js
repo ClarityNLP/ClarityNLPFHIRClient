@@ -81,6 +81,11 @@ const reducer = (state = initialState, action) => {
                 ...state,
                 selections: [...state.selections, action.data]
             };
+        case types.SET_SELECTIONS:
+            return {
+                ...state,
+                selections: action.data
+            };
         case types.SETTING_RESULTS:
             return {
                 ...state,

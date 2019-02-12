@@ -12,16 +12,16 @@ export default class SelectButton extends Component {
         };
     }
 
-    handleClick = () => {
+    handleClick = e => {
         const { task, category } = this.props;
         const { active } = this.state;
-
-        let selection = {
+        const selection = {
             task: task,
             category: category
         };
 
         this.setState({ active: !active });
+
         if (!active) {
             this.props.addSelection(selection);
         } else {

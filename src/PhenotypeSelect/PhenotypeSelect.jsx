@@ -15,13 +15,18 @@ export default class PhenotypeSelect extends Component {
         this.state = inititalState;
     }
 
+    componentDidMount() {
+        this.props.setSelections([]);
+        this.props.setResults([], null);
+    }
+
     renderOptions = () => {
         const { selections } = this.props.app;
 
         if (selections.length > 0) {
             return selections.map(value => {
                 return (
-                    <Badge key={value.task} color="primary" pill size="lg">
+                    <Badge key={value} color="primary" pill size="lg">
                         {prettify(value.task, true)}
                     </Badge>
                 );
@@ -52,9 +57,7 @@ export default class PhenotypeSelect extends Component {
         const { selections, patient } = this.props.app;
 
         if (selections.length > 0 && patient !== {} && patient.documents) {
-            this.props.setResults(selections, patient).catch(err => {
-                console.log(err);
-            });
+            this.props.setResults(selections, patient);
             this.props.history.push("/results");
         }
     };

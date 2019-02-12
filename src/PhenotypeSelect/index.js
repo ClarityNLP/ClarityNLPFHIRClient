@@ -1,5 +1,6 @@
 import { connect } from "react-redux";
 import { setResults } from "../redux/actions/set_results";
+import { setSelections } from "../redux/actions/update_selections";
 
 import PhenotypeSelect from "./PhenotypeSelect";
 
@@ -11,7 +12,7 @@ function mapStateToProps(state) {
 
 const PhenotypeSelectContainer = connect(
     mapStateToProps,
-    { setResults }
+    { setResults, setSelections }
 )(PhenotypeSelect);
 
 export default PhenotypeSelectContainer;

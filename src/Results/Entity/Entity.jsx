@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Moment from "react-moment";
 import { Col, Modal, ModalBody } from "reactstrap";
 
+import "./main.css";
 export default class Entity extends Component {
     constructor(props) {
         super(props);
@@ -36,14 +37,18 @@ export default class Entity extends Component {
 
         return (
             <React.Fragment>
-                <Col xs="12" className="EntityFrame" onClick={this.toggle}>
-                    <Moment format="MMM D, YYYY h:mm a">{report_date}</Moment>
-                    <div className="EntitySentence">
-                        <p>
-                            {startText}
-                            <span className="highlight">{term}</span>
-                            {endText}
-                        </p>
+                <Col xs="12" onClick={this.toggle}>
+                    <div className="EntityFrame">
+                        <Moment format="MMM D, YYYY h:mm a">
+                            {report_date}
+                        </Moment>
+                        <div className="EntitySentence">
+                            <p>
+                                {startText}
+                                <span className="highlight">{term}</span>
+                                {endText}
+                            </p>
+                        </div>
                     </div>
                 </Col>
                 <Modal isOpen={toggle} toggle={this.toggle}>

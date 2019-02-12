@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import "./App.css";
 
 import Loader from "./Loader";
-import Header from "./Header";
 import PhenotypeSelect from "./PhenotypeSelect";
 import Results from "./Results";
 
@@ -29,7 +28,6 @@ export default class App extends Component {
             <Loader />
         ) : (
             <React.Fragment>
-                <Header />
                 <Router>
                     <Switch>
                         <Route path="/results" component={Results} />

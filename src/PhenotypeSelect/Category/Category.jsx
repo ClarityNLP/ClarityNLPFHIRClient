@@ -33,7 +33,7 @@ export default class Category extends Component {
         const { category, values } = this.props;
 
         return (
-            <Col md="6" key={category} className="category">
+            <Col md="6" className="category">
                 <Card>
                     <CardHeader onClick={this.toggle}>
                         <h3>{prettify(category, true)}</h3>
