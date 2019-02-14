@@ -116,7 +116,7 @@ export const setResults = (selections, patient) => dispatch => {
         .then(results => {
             dispatch({
                 type: SET_RESULTS_SUCCESS,
-                data: results.flat()
+                data: results
             });
         })
         .catch(err => {

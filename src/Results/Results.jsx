@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import { Container, Row, Col } from "reactstrap";
+import { Container, Row, Col, Button } from "reactstrap";
+import prettify from "../utils/prettify";
 
 import "./main.css";
 
@@ -11,9 +12,26 @@ export default class Results extends Component {
         super(props);
 
         this.state = {
-            categorized_results: null
+            current_results: [],
+            isPrevDisabled: true,
+            isNextDisabled: false,
+            page: 0
         };
     }
+
+    getCurrentResults = page => {
+        const { results, results_error } = this.props.app;
+
+        if (results_error !== "" || results.length <= 0) {
+            return [];
+        }
+
+        this.setState({
+            current_results: results[page].map(result => {
+                return <Entity result={result} />;
+            })
+        });
+    };
 
     componentDidMount() {
         const { loading_results, results } = this.props.app;
@@ -25,81 +43,99 @@ export default class Results extends Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.app.results !== prevProps.app.results) {
-            this.categorizeResults();
+            this.getCurrentResults(0);
         }
     }
 
-    categorizeResults = () => {
-        const { results } = this.props.app;
+    goToPrevious = () => {
+        const { page } = this.state;
 
-        let tmp_results = {};
+        let disabled = false;
+        let previous = page - 1;
 
-        for (let result of results) {
-            const { nlpql_feature } = result;
-
-            if (!tmp_results[nlpql_feature]) {
-                tmp_results = {
-                    ...tmp_results,
-                    [nlpql_feature]: [result]
-                };
-            } else {
-                tmp_results[nlpql_feature] = [
-                    ...tmp_results[nlpql_feature],
-                    result
-                ];
-            }
+        if (previous - 1 < 0) {
+            disabled = true;
         }
 
         this.setState({
-            categorized_results: tmp_results
+            isNextDisabled: false,
+            isPrevDisabled: disabled,
+            page: previous
         });
+        this.getCurrentResults(previous);
     };
 
-    renderResults = () => {
-        const { results_error } = this.props.app;
-        const { categorized_results } = this.state;
+    goToNext = () => {
+        const { selections } = this.props.app;
+        const { page } = this.state;
 
-        if (results_error === "") {
-            let categories = [];
+        let disabled = false;
+        let next = page + 1;
 
-            for (let feature in categorized_results) {
-                if (categorized_results.hasOwnProperty(feature)) {
-                    let tmp = categorized_results[feature].map(result => {
-                        return (
-                            <Entity key={result.report_id} result={result} />
-                        );
-                    });
-
-                    categories.push(
-                        <div className="EntityContainer">
-                            <Col xs="12">
-                                <h5>{feature}</h5>
-                            </Col>
-                            {tmp}
-                        </div>
-                    );
-                }
-            }
-
-            return categories;
-        } else {
-            return (
-                <div>
-                    <p>No matches found.</p>
-                </div>
-            );
+        if (next + 1 > selections.length - 1) {
+            disabled = true;
         }
+
+        this.setState({
+            isPrevDisabled: false,
+            isNextDisabled: disabled,
+            page: next
+        });
+        this.getCurrentResults(next);
     };
 
     render() {
-        const { loading_results } = this.props.app;
+        const { loading_results, selections } = this.props.app;
+        const {
+            current_results,
+            isPrevDisabled,
+            isNextDisabled,
+            page
+        } = this.state;
 
         return loading_results ? (
             <Loader />
         ) : (
             <React.Fragment>
                 <Container>
-                    <Row>{this.renderResults()}</Row>
+                    {selections.length > 0 ? (
+                        <Row className="justify-content-between no-gutters mb-2">
+                            <Col md="2">
+                                <Button
+                                    block
+                                    disabled={isPrevDisabled}
+                                    outline
+                                    color="primary"
+                                    onClick={this.goToPrevious}
+                                >
+                                    Previous
+                                </Button>
+                            </Col>
+                            <Col md="8" className="text-center">
+                                <h2>{prettify(selections[page].task, true)}</h2>
+                            </Col>
+                            <Col md="2">
+                                <Button
+                                    block
+                                    disabled={isNextDisabled}
+                                    outline
+                                    color="primary"
+                                    onClick={this.goToNext}
+                                >
+                                    Next
+                                </Button>
+                            </Col>
+                        </Row>
+                    ) : null}
+                    <Row>
+                        {current_results.length > 0 ? (
+                            current_results
+                        ) : (
+                            <Col xs="12">
+                                <p>No Results Found.</p>
+                            </Col>
+                        )}
+                    </Row>
                 </Container>
             </React.Fragment>
         );

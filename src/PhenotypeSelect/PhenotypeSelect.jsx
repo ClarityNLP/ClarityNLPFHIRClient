@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import { Container, Row, Col, Badge, Button } from "reactstrap";
-import prettify from "../utils/prettify";
+import { Container, Row, Col, Button, CardColumns } from "reactstrap";
 
 import "./main.css";
 
@@ -19,22 +18,6 @@ export default class PhenotypeSelect extends Component {
         this.props.setSelections([]);
         this.props.setResults([], null);
     }
-
-    renderOptions = () => {
-        const { selections } = this.props.app;
-
-        if (selections.length > 0) {
-            return selections.map(value => {
-                return (
-                    <Badge key={value} color="primary" pill size="lg">
-                        {prettify(value.task, true)}
-                    </Badge>
-                );
-            });
-        } else {
-            return <div className="selected-option">No options selected.</div>;
-        }
-    };
 
     renderLibrary = () => {
         const { library } = this.props.app;
@@ -69,13 +52,9 @@ export default class PhenotypeSelect extends Component {
             <Container>
                 {error_alert}
                 <Row>
-                    <Col xs="8">
-                        <Row>{this.renderLibrary()}</Row>
-                    </Col>
-                    <Col xs="4" className="selected-options-container">
+                    <Col xs="12" className="selected-options-container">
                         <Row className="justify-content-end">
-                            <Col md="12">{this.renderOptions()}</Col>
-                            <Col md="6" className="align-self-end">
+                            <Col md="3" className="align-self-end">
                                 <Button
                                     outline
                                     color="primary"
@@ -87,6 +66,9 @@ export default class PhenotypeSelect extends Component {
                                 </Button>
                             </Col>
                         </Row>
+                    </Col>
+                    <Col xs="12">
+                        <CardColumns>{this.renderLibrary()}</CardColumns>
                     </Col>
                 </Row>
             </Container>
