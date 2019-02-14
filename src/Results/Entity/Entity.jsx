@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Moment from "react-moment";
-import { Col, Modal, ModalBody } from "reactstrap";
+import { Col } from "reactstrap";
 
 import "./main.css";
 export default class Entity extends Component {
@@ -19,41 +19,18 @@ export default class Entity extends Component {
     };
 
     render() {
-        const { toggle } = this.state;
-        const {
-            sentence,
-            start,
-            end,
-            term,
-            report_date,
-            report_text
-        } = this.props.result;
-
-        let startText = sentence.substr(0, start);
-        let endText = sentence.substr(
-            end,
-            sentence.length - startText.length - term.length
-        );
+        const { report_date, sentence } = this.props.result;
 
         return (
             <React.Fragment>
-                <Col xs="12" onClick={this.toggle}>
+                <Col xs="12">
                     <div className="EntityFrame">
                         <Moment format="MMM D, YYYY h:mm a">
                             {report_date}
                         </Moment>
-                        <div className="EntitySentence">
-                            <p>
-                                {startText}
-                                <span className="highlight">{term}</span>
-                                {endText}
-                            </p>
-                        </div>
+                        <div className="EntitySentence">{sentence}</div>
                     </div>
                 </Col>
-                <Modal isOpen={toggle} toggle={this.toggle}>
-                    <ModalBody>{report_text}</ModalBody>
-                </Modal>
             </React.Fragment>
         );
     }

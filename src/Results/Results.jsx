@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Container, Row } from "reactstrap";
+import { Container, Row, Col } from "reactstrap";
 
 import "./main.css";
 
@@ -56,7 +56,7 @@ export default class Results extends Component {
     };
 
     renderResults = () => {
-        const { results_error, selections } = this.props.app;
+        const { results_error } = this.props.app;
         const { categorized_results } = this.state;
 
         if (results_error === "") {
@@ -72,7 +72,9 @@ export default class Results extends Component {
 
                     categories.push(
                         <div className="EntityContainer">
-                            <h5>{feature}</h5>
+                            <Col xs="12">
+                                <h5>{feature}</h5>
+                            </Col>
                             {tmp}
                         </div>
                     );

@@ -95,6 +95,7 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading_results: false,
+                results_error: "",
                 results: action.data
             };
         case types.SET_RESULTS_FAIL:

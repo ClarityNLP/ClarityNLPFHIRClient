@@ -24,71 +24,61 @@ const compareColumn = (a, b, key) => {
     return 0;
 };
 
-const makeCall = (count, selections, docs, arr, dispatch) => {
-    const selection = selections[count];
-    let tmp_results = arr;
+const generatePromises = (selections, docs) => {
+    let promises = [];
 
-    console.log("MAKING CALL WITH: ");
-    console.log(selection);
+    for (let i = 0; i < selections.length; i++) {
+        const selection = selections[i];
 
-    let normalized_task = selection.category;
+        console.log("MAKING CALL WITH: ");
+        console.log(selection);
 
-    if (normalized_task.length > 0) {
-        normalized_task += "/";
+        let normalized_task = selection.category;
+
+        if (normalized_task.length > 0) {
+            normalized_task += "/";
+        }
+        normalized_task += selection.task;
+        normalized_task = normalized_task.split("/").join("~");
+
+        const url = process.env.REACT_APP_CLARITY_NLPAAS_URL + normalized_task;
+
+        promises.push(
+            axios
+                .post(url, {
+                    reports: docs
+                })
+                .then(response => {
+                    let results = response.data;
+                    let matches = results
+                        .filter(r => {
+                            return (
+                                r.hasOwnProperty("nlpql_feature") &&
+                                r.nlpql_feature &&
+                                r.nlpql_feature !== "null"
+                            );
+                        })
+                        .sort((a, b) => {
+                            let sort_val = 0;
+                            for (let c in standard_columns) {
+                                if (sort_val !== 0) {
+                                    break;
+                                }
+                                sort_val = compareColumn(
+                                    a,
+                                    b,
+                                    standard_columns[c]
+                                );
+                            }
+                            return sort_val;
+                        });
+
+                    return matches;
+                })
+        );
     }
 
-    normalized_task += selection.task;
-    normalized_task = normalized_task.split("/").join("~");
-
-    const url = process.env.REACT_APP_CLARITY_NLPAAS_URL + normalized_task;
-
-    axios
-        .post(url, {
-            reports: docs
-        })
-        .then(response => {
-            let results = response.data;
-
-            let matches = results
-                .filter(r => {
-                    return (
-                        r.hasOwnProperty("nlpql_feature") &&
-                        r.nlpql_feature &&
-                        r.nlpql_feature !== "null"
-                    );
-                })
-                .sort((a, b) => {
-                    let sort_val = 0;
-
-                    for (let c in standard_columns) {
-                        if (sort_val !== 0) {
-                            break;
-                        }
-                        sort_val = compareColumn(a, b, standard_columns[c]);
-                    }
-
-                    return sort_val;
-                });
-
-            if (matches.length > 0) {
-                tmp_results = [...tmp_results, ...matches];
-            }
-
-            if (count > 0) {
-                makeCall(count - 1, selections, docs, tmp_results, dispatch);
-            } else {
-                dispatch({
-                    type: SET_RESULTS_SUCCESS,
-                    data: tmp_results
-                });
-            }
-        })
-        .catch(err => {
-            dispatch({
-                type: SET_RESULTS_FAIL,
-                data: err.message
-            });
-        });
+    return promises;
 };
 
 export const setResults = (selections, patient) => dispatch => {
@@ -122,5 +112,17 @@ export const setResults = (selections, patient) => dispatch => {
         return "";
     });
 
-    makeCall(selections.length - 1, selections, docs, [], dispatch);
+    Promise.all(generatePromises(selections, docs))
+        .then(results => {
+            dispatch({
+                type: SET_RESULTS_SUCCESS,
+                data: results.flat()
+            });
+        })
+        .catch(err => {
+            dispatch({
+                type: SET_RESULTS_FAIL,
+                data: err.message
+            });
+        });
 };
