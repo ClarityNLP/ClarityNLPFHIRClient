@@ -98,8 +98,8 @@ export default class Results extends Component {
         ) : (
             <React.Fragment>
                 <Container>
-                    {selections.length > 0 ? (
-                        <Row className="justify-content-between no-gutters mb-2">
+                    <Row className="justify-content-center mb-2">
+                        {selections.length > 1 ? (
                             <Col md="2">
                                 <Button
                                     block
@@ -111,9 +111,11 @@ export default class Results extends Component {
                                     Previous
                                 </Button>
                             </Col>
-                            <Col md="8" className="text-center">
-                                <h2>{prettify(selections[page].task, true)}</h2>
-                            </Col>
+                        ) : null}
+                        <Col md="8" className="text-center">
+                            <h2>{prettify(selections[page].task, true)}</h2>
+                        </Col>
+                        {selections.length > 1 ? (
                             <Col md="2">
                                 <Button
                                     block
@@ -125,8 +127,9 @@ export default class Results extends Component {
                                     Next
                                 </Button>
                             </Col>
-                        </Row>
-                    ) : null}
+                        ) : null}
+                    </Row>
+
                     <Row>
                         {current_results.length > 0 ? (
                             current_results
