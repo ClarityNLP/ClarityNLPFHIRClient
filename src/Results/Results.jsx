@@ -33,8 +33,14 @@ export default class Results extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.app.results !== prevProps.app.results) {
-            this.getCurrentResults(0);
+        const { results_error } = this.props.app;
+
+        if (this.props.app !== prevProps.app) {
+            if (results_error !== "") {
+                this.props.history.push("/");
+            } else {
+                this.getCurrentResults(0);
+            }
         }
     }
 

@@ -111,7 +111,7 @@ export const setResults = (selections, patient) => dispatch => {
         .catch(err => {
             dispatch({
                 type: SET_RESULTS_FAIL,
-                data: err.message
+                data: err.response.data.message
             });
         });
 };
