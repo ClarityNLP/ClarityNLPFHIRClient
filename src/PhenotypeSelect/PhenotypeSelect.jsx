@@ -1,43 +1,99 @@
 import React, { Component } from "react";
-import { Container, Row, Col, Button, CardColumns } from "reactstrap";
+import { Container, Row, Col, Button, Alert } from "reactstrap";
+import prettify from "../utils/prettify";
+import Select from "react-select";
 
-import "./main.css";
-
-import Category from "./Category";
-
-const inititalState = {};
+const initialState = {
+    categoryOptions: [],
+    categorySelections: [],
+    phenotypeOptions: [],
+    phenotypeSelections: []
+};
 
 export default class PhenotypeSelect extends Component {
     constructor(props) {
         super(props);
 
-        this.state = inititalState;
+        this.state = initialState;
     }
 
     componentDidMount() {
-        this.props.setSelections([]);
-        this.props.setResults([], null);
-    }
-
-    renderLibrary = () => {
         const { library } = this.props.app;
-        let library_display = [];
+        const tmp_categoryOptions = [];
 
-        for (let category in library) {
-            library_display.push(
-                <Category
-                    key={category}
-                    category={category}
-                    values={library[category]}
-                />
-            );
+        for (let prop in library) {
+            if (library.hasOwnProperty(prop)) {
+                const prettyProp = prettify(prop, true);
+
+                tmp_categoryOptions.push({
+                    value: prop,
+                    label: prettyProp
+                });
+            }
         }
 
-        return library_display;
+        this.setState(
+            {
+                categoryOptions: tmp_categoryOptions,
+                categorySelections: tmp_categoryOptions
+            },
+            this.setPhenotypeOptions
+        );
+    }
+
+    setPhenotypeOptions = () => {
+        const { library } = this.props.app;
+        const { categorySelections } = this.state;
+        let tmp_phenotypeOptions = [];
+
+        for (let index in categorySelections) {
+            const category = categorySelections[index].value;
+            let tmp = [];
+
+            tmp = library[category].map(value => {
+                const prettyValue = prettify(value, true);
+
+                return {
+                    value: {
+                        task: value,
+                        category: category
+                    },
+                    label: prettyValue
+                };
+            });
+
+            tmp_phenotypeOptions.push(tmp);
+        }
+
+        this.setState({
+            phenotypeOptions: tmp_phenotypeOptions.flat()
+        });
+    };
+
+    handleCategorySelect = value => {
+        this.setState(
+            {
+                categorySelections: value
+            },
+            this.setPhenotypeOptions
+        );
+    };
+
+    handlePhenotypeSelect = value => {
+        this.setState({
+            phenotypeSelections: value
+        });
     };
 
     handleRunClick = () => {
-        const { selections, patient } = this.props.app;
+        const { patient } = this.props.app;
+        const { phenotypeSelections } = this.state;
+
+        const selections = phenotypeSelections.map(value => {
+            return value.value;
+        });
+
+        this.props.setSelections(selections, patient);
 
         if (selections.length > 0 && patient !== {} && patient.documents) {
             this.props.setResults(selections, patient);
@@ -46,29 +102,55 @@ export default class PhenotypeSelect extends Component {
     };
 
     render() {
-        const { error_alert } = this.state;
+        const { results_error } = this.props.app;
+        const {
+            categoryOptions,
+            categorySelections,
+            phenotypeOptions,
+            phenotypeSelections
+        } = this.state;
 
         return (
             <Container>
-                {error_alert}
-                <Row>
-                    <Col xs="12" className="selected-options-container">
+                <Row className="justify-content-center align-items-center">
+                    <Col md="8">
                         <Row className="justify-content-end">
-                            <Col md="3" className="align-self-end">
+                            {results_error === "" ? null : (
+                                <Col xs="12" className="mb-3">
+                                    <Alert color="danger">
+                                        {results_error}
+                                    </Alert>
+                                </Col>
+                            )}
+                            <Col xs="12" className="mb-3">
+                                <Select
+                                    isMulti={true}
+                                    value={categorySelections}
+                                    onChange={this.handleCategorySelect}
+                                    options={categoryOptions}
+                                    placeholder="Select Categories..."
+                                />
+                            </Col>
+                            <Col xs="12" className="mb-3">
+                                <Select
+                                    isMulti={true}
+                                    value={phenotypeSelections}
+                                    onChange={this.handlePhenotypeSelect}
+                                    options={phenotypeOptions}
+                                    placeholder="Select Phenotypes..."
+                                />
+                            </Col>
+                            <Col md="4" className="mb-3">
                                 <Button
+                                    block
                                     outline
                                     color="primary"
-                                    size="lg"
-                                    block
                                     onClick={this.handleRunClick}
                                 >
-                                    Run
+                                    RUN
                                 </Button>
                             </Col>
                         </Row>
-                    </Col>
-                    <Col xs="12">
-                        <CardColumns>{this.renderLibrary()}</CardColumns>
                     </Col>
                 </Row>
             </Container>

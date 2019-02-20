@@ -104,6 +104,11 @@ const reducer = (state = initialState, action) => {
                 loading_results: false,
                 results_error: action.data
             };
+        case types.RESET_RESULTS:
+            return {
+                ...state,
+                results: []
+            };
         default:
             return state;
     }

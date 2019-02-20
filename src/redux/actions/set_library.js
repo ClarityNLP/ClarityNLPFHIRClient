@@ -46,7 +46,7 @@ export const setLibrary = () => dispatch => {
                     type: SET_LIBRARY_FAIL,
                     data: err.message
                 });
-                reject();
+                reject(err);
             });
     });
 };

@@ -4,7 +4,8 @@ import axios from "axios";
 import {
     SETTING_RESULTS,
     SET_RESULTS_SUCCESS,
-    SET_RESULTS_FAIL
+    SET_RESULTS_FAIL,
+    RESET_RESULTS
 } from "./types";
 
 const standard_columns = ["nlpql_feature", "section", "sentence", "value", "$"];
@@ -29,18 +30,7 @@ const generatePromises = (selections, docs) => {
 
     for (let i = 0; i < selections.length; i++) {
         const selection = selections[i];
-
-        console.log("MAKING CALL WITH: ");
-        console.log(selection);
-
-        let normalized_task = selection.category;
-
-        if (normalized_task.length > 0) {
-            normalized_task += "/";
-        }
-        normalized_task += selection.task;
-        normalized_task = normalized_task.split("/").join("~");
-
+        const normalized_task = selection.category + "/" + selection.task;
         const url = process.env.REACT_APP_CLARITY_NLPAAS_URL + normalized_task;
 
         promises.push(
@@ -84,8 +74,7 @@ const generatePromises = (selections, docs) => {
 export const setResults = (selections, patient) => dispatch => {
     if (selections.length <= 0) {
         dispatch({
-            type: SET_RESULTS_SUCCESS,
-            data: []
+            type: RESET_RESULTS
         });
         return;
     }

@@ -12,7 +12,9 @@ export default class App extends Component {
         this.props.setSmart().then(smart => {
             this.props.setPatient(smart);
         });
-        this.props.setLibrary();
+        this.props.setLibrary().catch(err => {
+            console.log(err);
+        });
     }
 
     render() {

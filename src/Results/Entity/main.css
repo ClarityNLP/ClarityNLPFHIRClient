@@ -25,3 +25,12 @@
     border-radius: 8px;
     padding: 2px 4px;
 }
+
+.modal-body {
+    max-height: calc(100vh - 3.5rem);
+    overflow: scroll;
+}
+
+.modal-dialog {
+    max-width: calc(80%);
+}

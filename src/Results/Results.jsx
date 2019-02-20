@@ -12,32 +12,23 @@ export default class Results extends Component {
         super(props);
 
         this.state = {
-            current_results: [],
+            current_results: {},
+            current_task: "",
             isPrevDisabled: true,
             isNextDisabled: false,
             page: 0
         };
     }
 
-    getCurrentResults = page => {
-        const { results, results_error } = this.props.app;
-
-        if (results_error !== "" || results.length <= 0) {
-            return [];
-        }
-
-        this.setState({
-            current_results: results[page].map(result => {
-                return <Entity result={result} />;
-            })
-        });
-    };
-
     componentDidMount() {
-        const { loading_results, results } = this.props.app;
+        const { results, loading_results } = this.props.app;
 
-        if (!loading_results && !(results.length > 0)) {
-            this.props.history.push("/");
+        if (!loading_results) {
+            if (results.length > 0) {
+                this.getCurrentResults(0);
+            } else {
+                this.props.history.push("/");
+            }
         }
     }
 
@@ -46,6 +37,40 @@ export default class Results extends Component {
             this.getCurrentResults(0);
         }
     }
+
+    getCurrentResults = page => {
+        const { results, results_error, selections } = this.props.app;
+        let tmp_currentResults = {};
+
+        if (results_error !== "" || results[page].length <= 0) {
+            this.setState({
+                current_results: false,
+                current_task: prettify(selections[page].task, true)
+            });
+            return;
+        }
+
+        for (let result of results[page]) {
+            if (result.nlpql_feature) {
+                if (tmp_currentResults.hasOwnProperty(result.nlpql_feature)) {
+                    tmp_currentResults[result.nlpql_feature] = [
+                        ...tmp_currentResults[result.nlpql_feature],
+                        result
+                    ];
+                } else {
+                    tmp_currentResults = {
+                        ...tmp_currentResults,
+                        [result.nlpql_feature]: [result]
+                    };
+                }
+            }
+        }
+
+        this.setState({
+            current_results: tmp_currentResults,
+            current_task: prettify(selections[page].task, true)
+        });
+    };
 
     goToPrevious = () => {
         const { page } = this.state;
@@ -84,21 +109,53 @@ export default class Results extends Component {
         this.getCurrentResults(next);
     };
 
+    displayResults = () => {
+        const { current_results } = this.state;
+        let display = [];
+
+        if (!current_results) {
+            return (
+                <Col>
+                    <p>No Results Found.</p>
+                </Col>
+            );
+        }
+
+        for (let feature in current_results) {
+            let featureHeader = (
+                <Col xs="12" className="mb-2">
+                    <h4>Feature: {feature}</h4>
+                </Col>
+            );
+            let featureResults = [];
+
+            const results = current_results[feature];
+
+            for (let result of results) {
+                featureResults.push(<Entity result={result} />);
+            }
+
+            display.push(
+                <Row>
+                    {featureHeader}
+                    {featureResults}
+                </Row>
+            );
+        }
+
+        return display;
+    };
+
     render() {
         const { loading_results, selections } = this.props.app;
-        const {
-            current_results,
-            isPrevDisabled,
-            isNextDisabled,
-            page
-        } = this.state;
+        const { current_task, isPrevDisabled, isNextDisabled } = this.state;
 
         return loading_results ? (
             <Loader />
         ) : (
             <React.Fragment>
                 <Container>
-                    <Row className="justify-content-center mb-2">
+                    <Row className="justify-content-center mb-5">
                         {selections.length > 1 ? (
                             <Col md="2">
                                 <Button
@@ -113,7 +170,7 @@ export default class Results extends Component {
                             </Col>
                         ) : null}
                         <Col md="8" className="text-center">
-                            <h2>{prettify(selections[page].task, true)}</h2>
+                            <h1>{current_task}</h1>
                         </Col>
                         {selections.length > 1 ? (
                             <Col md="2">
@@ -129,16 +186,7 @@ export default class Results extends Component {
                             </Col>
                         ) : null}
                     </Row>
-
-                    <Row>
-                        {current_results.length > 0 ? (
-                            current_results
-                        ) : (
-                            <Col xs="12">
-                                <p>No Results Found.</p>
-                            </Col>
-                        )}
-                    </Row>
+                    {this.displayResults()}
                 </Container>
             </React.Fragment>
         );
