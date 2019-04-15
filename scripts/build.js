@@ -14,29 +14,6 @@ process.on('unhandledRejection', err => {
 // Ensure environment variables are read.
 require('../config/env');
 
-//override api endpoints based on build argument
-let argv = process.argv.slice(2);
-if (argv.indexOf('--env=emory-staging') > -1) {
-  process.env.PORT = '7200';
-  process.env.REACT_APP_CLARITY_NLP_URL =
-    'http://claritynlp.bmi.emory.edu:5000/';
-  process.env.REACT_APP_LUIGI_URL = 'http://claritynlp.bmi.emory.edu:8082';
-  process.env.REACT_APP_EXPORT_URL =
-    'http://claritynlp.bmi.emory.edu:5001/export_ohdsi';
-}
-if (argv.indexOf('--env=gtri-production') > -1) {
-  process.env.PORT = '7200';
-  process.env.REACT_APP_CLARITY_NLP_URL = 'http://18.220.133.76:5000/';
-  process.env.REACT_APP_LUIGI_URL = 'http://18.220.133.76:8082';
-  process.env.REACT_APP_EXPORT_URL = 'http://18.220.133.76:5001/export_ohdsi';
-}
-if (argv.indexOf('--env=gtri-optimized') > -1) {
-  process.env.PORT = '7200';
-  process.env.REACT_APP_CLARITY_NLP_URL = 'http://3.16.75.68:5000/';
-  process.env.REACT_APP_LUIGI_URL = 'http://3.16.75.68:8082';
-  process.env.REACT_APP_EXPORT_URL = 'http://3.16.75.68:5001/export_ohdsi';
-}
-
 const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
