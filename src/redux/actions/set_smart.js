@@ -15,12 +15,14 @@ export const setSmart = () => dispatch => {
         tmp_smart = smart;
       });
     }
+
     // }
 
     dispatch({
       type: SET_SMART_SUCCESS,
       data: tmp_smart
     });
+
     resolve(tmp_smart);
   });
 };
