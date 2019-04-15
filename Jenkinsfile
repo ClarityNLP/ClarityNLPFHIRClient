@@ -14,7 +14,7 @@ pipeline{
             steps{
                 script{
                     docker.withRegistry("https://${GTRI_IMAGE_REGISTRY}"){
-                        def fhirclientImage = docker.build("clarity-fhir-client:1.0", "-f ./Dockerfile .")
+                        def fhirclientImage = docker.build("clarity-fhir-client:1.0", "-f ./Dockerfile.prod .")
                         fhirclientImage.push('latest')
                     }
                 }
@@ -25,9 +25,9 @@ pipeline{
             steps{
                 script{
                     //deploy to GTRI Clarity
-                    rancher confirm: true, credentialId: 'gt-rancher-server', endpoint: "${GTRI_RANCHER_API_ENDPOINT}", environmentId: "${GTRI_CLARITY_ENV_ID}", environments: '', image: "${GTRI_IMAGE_REGISTRY}/clarity-fhir-client:latest", ports: '', service: 'ClarityNLP/fhirclient', timeout: 300
+                    rancher confirm: true, credentialId: 'gt-rancher-server', endpoint: "${GTRI_RANCHER_API_ENDPOINT}", environmentId: "${GTRI_CLARITY_ENV_ID}", environments: '', image: "${GTRI_IMAGE_REGISTRY}/clarity-fhir-client:latest", ports: '', service: 'ClarityNLP/fhirclient', timeout: 10000
                     //deploy to GTRI HDAP
-                     rancher confirm: true, credentialId: 'gt-rancher-server', endpoint: "${GTRI_RANCHER_API_ENDPOINT}", environmentId: "${GTRI_HDAP_ENV_ID}", environments: '', image: "${GTRI_IMAGE_REGISTRY}/clarity-fhir-client:latest", ports: '', service: 'ClarityNLP/fhirclient', timeout: 300
+                     rancher confirm: true, credentialId: 'gt-rancher-server', endpoint: "${GTRI_RANCHER_API_ENDPOINT}", environmentId: "${GTRI_HDAP_ENV_ID}", environments: '', image: "${GTRI_IMAGE_REGISTRY}/clarity-fhir-client:latest", ports: '', service: 'ClarityNLP/fhirclient', timeout: 10000
                 }
             }
         }

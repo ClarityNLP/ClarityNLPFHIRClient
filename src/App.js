@@ -11,7 +11,7 @@ export default class App extends Component {
   componentDidMount() {
     if (window.FHIR) {
       window.FHIR.oauth2.authorize({
-        client_id: 'my_web_app',
+        client_id: 'claritynlp_fhir_client',
         scope: 'patient/*.read'
       });
     }
