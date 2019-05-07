@@ -25,7 +25,7 @@ const compareColumn = (a, b, key) => {
     return 0;
 };
 
-const generatePromises = (selections, docs) => {
+const generatePromises = (selections, docs, patient, smart) => {
     let promises = [];
 
     for (let i = 0; i < selections.length; i++) {
@@ -33,10 +33,16 @@ const generatePromises = (selections, docs) => {
         const normalized_task = selection.category + "/" + selection.task;
         const url = process.env.REACT_APP_CLARITY_NLPAAS_URL + normalized_task;
 
+        let fhir_server = {};
+        if (smart) {
+            fhir_server = smart.server;
+        }
         promises.push(
             axios
                 .post(url, {
-                    reports: docs
+                    reports: docs,
+                    patient: patient,
+                    fhir: fhir_server
                 })
                 .then(response => {
                     let results = response.data;
@@ -71,7 +77,7 @@ const generatePromises = (selections, docs) => {
     return promises;
 };
 
-export const setResults = (selections, patient) => dispatch => {
+export const setResults = (selections, patient, smart) => dispatch => {
     if (selections.length <= 0) {
         dispatch({
             type: RESET_RESULTS
@@ -101,7 +107,7 @@ export const setResults = (selections, patient) => dispatch => {
         return "";
     });
 
-    Promise.all(generatePromises(selections, docs))
+    Promise.all(generatePromises(selections, docs, patient, smart))
         .then(results => {
             dispatch({
                 type: SET_RESULTS_SUCCESS,
