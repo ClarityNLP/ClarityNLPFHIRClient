@@ -37,11 +37,15 @@ const generatePromises = (selections, docs, patient, smart) => {
         if (smart) {
             fhir_server = smart.server;
         }
+        let patient_id = -1;
+        if (patient) {
+            patient_id = patient.id;
+        }
         promises.push(
             axios
                 .post(url, {
                     reports: docs,
-                    patient: patient,
+                    patient_id: patient_id,
                     fhir: fhir_server
                 })
                 .then(response => {
