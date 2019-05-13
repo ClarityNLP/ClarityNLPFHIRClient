@@ -100,7 +100,7 @@ export default class PhenotypeSelect extends Component {
     this.props.setSelections(selections, patient);
 
     if (selections.length > 0 && patient !== {} && patient.documents) {
-      this.props.setResults(selections, patient, smart);
+      this.props.setResults(selections, patient, smart.server);
       this.props.history.push('/results');
     }
   };
