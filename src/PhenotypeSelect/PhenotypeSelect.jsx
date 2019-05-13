@@ -90,7 +90,7 @@ export default class PhenotypeSelect extends Component {
   };
 
   handleRunClick = () => {
-    const { patient } = this.props.app;
+    const { patient, smart } = this.props.app;
     const { phenotypeSelections } = this.state;
 
     const selections = phenotypeSelections.map(value => {
@@ -100,7 +100,7 @@ export default class PhenotypeSelect extends Component {
     this.props.setSelections(selections, patient);
 
     if (selections.length > 0 && patient !== {} && patient.documents) {
-      this.props.setResults(selections, patient);
+      this.props.setResults(selections, patient, smart.server);
       this.props.history.push('/results');
     }
   };
